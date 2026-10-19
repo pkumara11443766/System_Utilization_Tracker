@@ -485,9 +485,12 @@ def _fetch_daily_samples(session: requests.Session, system_id: str, days: int
     Returns (samples, error). Each sample is a dict:
         {"date": "YYYY-MM-DD", "host_utilization": float, "activity": str}
     """
-    msg = (f"Get host utilization for system {system_id} for the past "
-           f"{days} days. Return one sample per day with date, "
-           f"host_utilization and activity.")
+    # NOTE: the utilization agent's NL parser extracts 0 systems when the
+    # message contains "for system <id>" (it treats "system" as a keyword and
+    # misses the ID). Keep the bare ID right after "host utilization" so the
+    # agent reliably resolves exactly one system.
+    msg = (f"host utilization {system_id} past {days} days per day. "
+           f"Return one sample per day with date, host_utilization and activity.")
 
     status, payload = _post_util_agent(session, msg)
     if status == 401:
